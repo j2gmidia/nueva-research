@@ -94,7 +94,7 @@ function footer() {
 function card(item) {
   return `<article class="card">
     <a href="/products/${item.product.slug}?v=${item.key}"><div class="photo"><span class="amino-sale">-15%</span><span class="card-bogo">BOGO</span><img src="${item.variant.photo}" alt="${item.title}"></div></a>
-    <div class="meta"><a href="/products/${item.product.slug}?v=${item.key}"><h3>${item.title}</h3><p>${money(item.variant.price)} <s class="was">${money(compareAt(item.variant.price))}</s></p><p class="bogo-mini">Buy 1 Get 1 Free</p></a>
+    <div class="meta"><a href="/products/${item.product.slug}?v=${item.key}"><h3 class="card-name">${item.product.name}<span class="card-strength">${item.variant.strength}</span></h3><p class="card-price"><strong>${money(item.variant.price)}</strong><s>${money(compareAt(item.variant.price))}</s></p><span class="bogo-mini">Buy 1 Get 1 Free</span></a>
     <button class="plus" data-add="${item.key}" aria-label="Add ${item.title}">+</button></div>
   </article>`;
 }
@@ -146,6 +146,17 @@ function home() {
     </div>
     <div class="nfc-photo"><img src="/img/nfc-verified.jpg" alt="NFC verification with vial and authenticated documentation on phone"><span class="nfc-pulse"></span></div>
   </section>
+  <section class="home-cats">
+    <h2>Shop by category</h2>
+    <div class="home-cat-grid">
+      <a class="home-cat" href="/products?cat=metabolic">Metabolic</a>
+      <a class="home-cat" href="/products?cat=recovery">Recovery & tissue</a>
+      <a class="home-cat" href="/products?cat=longevity">Longevity & neuro</a>
+      <a class="home-cat" href="/products?cat=secretagogue">Secretagogues</a>
+      <a class="home-cat" href="/products?cat=immuno">Immunopeptides</a>
+      <a class="home-cat" href="/products?cat=reagents">Lab reagents</a>
+    </div>
+  </section>
   <section class="home-strip">
     <div class="home-strip-inner">
       <div>
@@ -161,9 +172,11 @@ function productsPage() {
   const params = new URLSearchParams(location.search);
   const q = (params.get("q") || "").trim().toLowerCase();
   const format = params.get("format") || "all";
+  const cat = params.get("cat") || "";
   const sort = params.get("sort") || "popular";
   let list = catalogItems().filter((item) => {
     if (format !== "all" && formatOf(item.product) !== format) return false;
+    if (cat && item.product.category !== cat) return false;
     if (!q) return true;
     return (item.title + " " + (item.product.aliases || "") + " " + item.variant.sku).toLowerCase().includes(q);
   });
