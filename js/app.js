@@ -93,9 +93,11 @@ function footer() {
 }
 function card(item) {
   return `<article class="card">
-    <a href="/products/${item.product.slug}?v=${item.key}"><div class="photo"><span class="amino-sale">-15%</span><span class="card-bogo">BOGO</span><img src="${item.variant.photo}" alt="${item.title}"></div></a>
-    <div class="meta"><a href="/products/${item.product.slug}?v=${item.key}"><h3 class="card-name">${item.product.name}<span class="card-strength">${item.variant.strength}</span></h3><p class="card-price"><strong>${money(item.variant.price)}</strong><s>${money(compareAt(item.variant.price))}</s></p><span class="bogo-mini">Buy 1 Get 1 Free</span></a>
-    <button class="plus" data-add="${item.key}" aria-label="Add ${item.title}">+</button></div>
+    <div class="photo">
+      <a href="/products/${item.product.slug}?v=${item.key}"><span class="amino-sale">-15%</span><span class="card-bogo">BOGO</span><img src="${item.variant.photo}" alt="${item.title}"></a>
+      <button class="plus card-plus" data-add="${item.key}" aria-label="Add ${item.title}">+</button>
+    </div>
+    <div class="meta card-copy"><a href="/products/${item.product.slug}?v=${item.key}"><h3 class="card-name">${item.product.name}<span class="card-strength">${item.variant.strength}</span></h3><p class="card-price"><strong>${money(item.variant.price)}</strong><s>${money(compareAt(item.variant.price))}</s></p><span class="bogo-mini">Buy 1 Get 1 Free</span></a></div>
   </article>`;
 }
 function home() {
