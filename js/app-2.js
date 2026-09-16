@@ -4,15 +4,17 @@ function pdp(slug) {
   const vId = new URLSearchParams(location.search).get("v") || p.variants[0].id;
   const v = p.variants.find((x) => x.id === vId) || p.variants[0];
   const dose = (v.strength || "").replace(/\s+/g, "");
+  const coaPdf = variantCoa(v.id);
+  const coaImg = variantCoaImg(v.id);
   const strength = p.variants.length > 1
     ? p.variants.map((opt)=>`<button type="button" data-size="${opt.id}" class="strength ${opt.id===v.id?"on":""}">${opt.strength.replace(/\s+/g,"")} <span class="bogo-pill">BOGO</span></button>`).join("")
     : `<button type="button" class="strength on">Standard <span class="bogo-pill">BOGO</span></button>`;
   return `<main class="amino-pdp">
     <div class="amino-gallery">
-      <div class="amino-well"><span class="amino-sale">-15%</span><img src="${v.photo}" alt="${p.name} ${v.strength}"></div>
+      <div class="amino-well"><span class="amino-sale">-15%</span><img id="pdp-hero" src="${v.photo}" alt="${p.name} ${v.strength}"></div>
       <div class="amino-thumbs">
-        <button type="button" class="on"><img src="${v.photo}" alt=""></button>
-        <button type="button" data-coa><img src="/img/coa-sheet.jpg" alt="COA"></button>
+        <button type="button" class="on" data-hero="${v.photo}"><img src="${v.photo}" alt=""></button>
+        ${coaImg ? `<button type="button" data-coa data-hero="${coaImg}"><img src="${coaImg}" alt="COA" class="coa-thumb"></button>` : ""}
       </div>
     </div>
     <div class="amino-buy">
@@ -31,10 +33,11 @@ function pdp(slug) {
         </div>
         <div class="amino-total"><div><strong>We'll ship you 2 vials</strong><span>You pay for 1 — 1 ships free</span><em class="amino-save">You save ${money(v.price)}</em></div><div class="amino-total-price">${money(v.price)}<small>TOTAL</small></div></div>
         <button type="submit" class="amino-atc" id="add-pdp" data-id="${v.id}" data-price="${v.price}">Add to Cart</button>
+        ${coaPdf ? `<button type="button" class="amino-coa" data-coa>View Certificate of Analysis (COA)</button>` : ""}
       </form>
     </div>
   </main>
-  <div id="coa-modal" class="modal-overlay" style="display:none"><div class="modal-content"><div class="modal-header"><h2>Certificate of Analysis (COA)</h2><button class="close-modal" type="button">&times;</button></div><div class="modal-body"><img src="/img/coa-sheet.jpg" class="coa-image" alt="COA"></div></div></div>`;
+  <div id="coa-modal" class="modal-overlay" style="display:none"><div class="modal-content"><div class="modal-header"><h2>Certificate of Analysis (COA)</h2><button class="close-modal" type="button">&times;</button></div><div class="modal-body">${coaImg ? `<img src="${coaImg}" class="coa-image" alt="Certificate of Analysis">` : ""}${coaPdf ? `<a class="coa-download" href="${coaPdf}" download>Download COA PDF ↓</a>` : ""}</div></div></div>`;
 }
 function simple(title, html) { return `<section class="wrap"><h1>${title}</h1><div style="max-width:640px;margin-top:24px;line-height:1.7">${html}</div></section>`; }
 function checkoutPage() {
@@ -269,6 +272,12 @@ document.addEventListener("submit", (e) => {
   }
 });
 document.addEventListener("click", (e2) => {
+  const thumb = e2.target.closest(".amino-thumbs button");
+  if (thumb && thumb.dataset.hero) {
+    const hero = $("#pdp-hero");
+    if (hero) hero.src = thumb.dataset.hero;
+    document.querySelectorAll(".amino-thumbs button").forEach((b) => b.classList.toggle("on", b === thumb));
+  }
   if (e2.target.closest("[data-coa]")) { const m = $("#coa-modal"); if (m) m.style.display = "flex"; }
   if (e2.target.classList && (e2.target.classList.contains("close-modal") || e2.target.id === "coa-modal")) {
     const m = $("#coa-modal"); if (m) m.style.display = "none";

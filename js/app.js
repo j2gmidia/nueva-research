@@ -1,9 +1,17 @@
 const SHOP = "xk10qi-6m.myshopify.com";
 const CART_KEY = "nueva-cart-v1";
+const COA_IDS = new Set([
+  "tirzepatide-10mg","tirzepatide-30mg","tirzepatide-60mg","tirzepatide-100mg",
+  "bpc-157-10mg","tb-500-10mg","bpc-tb-20mg","klow-80mg","ghk-bpc-tb-70mg",
+  "ghk-cu-50mg","ghk-cu-100mg","epitalon-50mg","pinealon-10mg","semax-10mg",
+  "selank-10mg","tesamorelin-10mg","nad-100mg","nad-500mg"
+]);
 let DATA = { PRODUCTS: [], FORMATS: [], SORTS: [] };
 const $ = (s, e = document) => e.querySelector(s);
 const money = (n) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 function path() { return location.pathname.replace(/\/+$/, "") || "/"; }
+function variantCoa(id) { return COA_IDS.has(id) ? "/coa/" + id + ".pdf" : ""; }
+function variantCoaImg(id) { return COA_IDS.has(id) ? "/img/coa/" + id + ".jpg" : ""; }
 function catalogItems() {
   return DATA.PRODUCTS.flatMap((p) => p.variants.map((v) => ({ key: v.id, title: p.name + " " + v.strength, product: p, variant: v })));
 }
