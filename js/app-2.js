@@ -40,6 +40,25 @@ function pdp(slug) {
   <div id="coa-modal" class="modal-overlay" style="display:none"><div class="modal-content"><div class="modal-header"><h2>Certificate of Analysis (COA)</h2><button class="close-modal" type="button">&times;</button></div><div class="modal-body">${coaImg ? `<img src="${coaImg}" class="coa-image" alt="Certificate of Analysis">` : ""}${coaPdf ? `<a class="coa-download" href="${coaPdf}" download>Download COA PDF ↓</a>` : ""}</div></div></div>`;
 }
 function simple(title, html) { return `<section class="wrap"><h1>${title}</h1><div style="max-width:640px;margin-top:24px;line-height:1.7">${html}</div></section>`; }
+function checkoutHop() {
+  return `<section class="wrap" style="text-align:center;padding:4.5rem 1.2rem">
+    <h1>Taking you to secure checkout…</h1>
+    <p class="muted" style="margin-top:10px">Shopify Checkout · BOGO applied automatically.</p>
+    <p style="margin-top:1.5rem"><a class="btn" id="checkout-continue" href="#">Continue to checkout</a></p>
+  </section>`;
+}
+function shopifyPayUrl(email) {
+  const p = path();
+  if (p.startsWith("/cart/")) {
+    const items = decodeURIComponent(p.slice(6).split("/")[0]).replace(/[^\d:,]/g, "");
+    if (/^\d+:\d+(,\d+:\d+)*$/.test(items)) {
+      const params = new URLSearchParams({ items, discount: "BOGO" });
+      if (email) params.set("email", email);
+      return "/.netlify/functions/checkout?" + params.toString();
+    }
+  }
+  return checkoutUrl(email);
+}
 function checkoutPage() {
   const lines = loadCart();
   if (!lines.length) return `<section class="wrap" style="max-width:640px;text-align:center"><h1>Your cart is empty</h1><p class="muted">Add your favorite items to your cart.</p><a class="btn" href="/products" style="margin-top:24px">View Catalog</a></section>`;
@@ -67,7 +86,7 @@ function checkoutPage() {
       <div class="ship">Standard · 2–5 business days <span class="muted">Calculated next</span></div>
       <h3>Payment</h3>
       ${payMarks()}
-      ${url ? `<a class="btn" id="pay-now" href="${url}" target="_blank" rel="noopener noreferrer" style="width:100%;margin-top:20px">Pay now</a>` : `<p class="muted">Shopify variants are not linked.</p>`}
+      ${url ? `<a class="btn" id="pay-now" href="${url}" style="width:100%;margin-top:20px">Pay now</a>` : `<p class="muted">Shopify variants are not linked.</p>`}
       <p class="muted" style="text-align:center;font-size:12px;margin-top:12px">Secure checkout on Shopify. Research use only.</p>
     </div>
     <aside class="summary">
@@ -85,6 +104,7 @@ function pageHTML() {
   if (p === "/products" || p === "/catalog") return productsPage();
   if (p.startsWith("/products/")) return pdp(p.split("/")[2]);
   if (p === "/checkout") return checkoutPage();
+  if (p.startsWith("/cart/") || p.startsWith("/checkouts/")) return checkoutHop();
   if (p === "/about") return simple("About", "<p>Nueva Research supplies research-grade peptides with HPLC/MS lot documentation. USA fulfilled. Research use only.</p>");
   if (p === "/contact") return simple("Contact", '<p>Email <a href="mailto:support@nuevaresearch.com">support@nuevaresearch.com</a>.</p>');
   if (p === "/wholesale") return simple("Wholesale", "<p>For laboratory procurement and volume fills, email support@nuevaresearch.com.</p>");
@@ -189,10 +209,10 @@ function openCart() {
       <p class="cart-tax">Shipping & taxes calculated at checkout</p>
       <p class="cart-saved">You saved ${money(saved)} · Earn ${Math.round(total * 10)} points</p>
       <div class="cart-pays">
-        ${url ? `<a class="pay-apple" href="${url}" target="_blank" rel="noopener">${payApple()}Pay</a>
-        <a class="pay-google" href="${url}" target="_blank" rel="noopener">${payGoogle()}Pay</a>
-        <a class="pay-paypal" href="${url}" target="_blank" rel="noopener">Pay<span>Pal</span></a>
-        <a class="pay-checkout" href="${url}" target="_blank" rel="noopener">Checkout</a>` : `<a class="pay-checkout" href="/checkout">Checkout</a>`}
+        ${url ? `<a class="pay-apple" href="${url}">${payApple()}Pay</a>
+        <a class="pay-google" href="${url}">${payGoogle()}Pay</a>
+        <a class="pay-paypal" href="${url}">Pay<span>Pal</span></a>
+        <a class="pay-checkout" href="${url}">Checkout</a>` : `<a class="pay-checkout" href="/checkout">Checkout</a>`}
       </div>
       <a class="cart-full" href="/checkout" data-close>View full cart →</a>
     </footer>`;
@@ -205,11 +225,22 @@ function render() {
   renderChrome();
   $("#app").innerHTML = pageHTML() + footer();
   window.scrollTo(0, 0);
+  const hop = shopifyPayUrl();
+  if ((path().startsWith("/cart/") || path().startsWith("/checkouts/")) && hop) {
+    const btn = $("#checkout-continue");
+    if (btn) btn.setAttribute("href", hop);
+    location.replace(hop);
+  }
 }
 function go(href) { const url = new URL(href, location.origin); history.pushState({}, "", url.pathname + url.search); render(); }
+function isAppRoute(href) {
+  if (!href || !href.startsWith("/") || href.startsWith("//")) return false;
+  if (href.startsWith("/.netlify/") || href.startsWith("/api/") || href.startsWith("/coa/")) return false;
+  return true;
+}
 document.addEventListener("click", (e) => {
   const a = e.target.closest("a");
-  if (a && a.getAttribute("href") && a.getAttribute("href").startsWith("/") && !a.target) { e.preventDefault(); go(a.getAttribute("href")); }
+  if (a && isAppRoute(a.getAttribute("href")) && !a.target) { e.preventDefault(); go(a.getAttribute("href")); }
   const add = e.target.closest("[data-add]");
   if (add) { e.preventDefault(); addToCart(add.dataset.add, 1); }
   const act = e.target.closest("[data-act]");
@@ -238,12 +269,12 @@ document.addEventListener("click", (e) => {
   }
   const qty = e.target.closest("[data-qty]");
   if (qty) { setQty(qty.dataset.qty, Number(qty.dataset.n)); if (path() === "/checkout") render(); else openCart(); }
-  if (e.target.id === "pay-now" || e.target.closest("#pay-now")) {
+  if (e.target.id === "pay-now" || e.target.closest("#pay-now") || e.target.id === "checkout-continue") {
     const email = ($("#ck-email") && $("#ck-email").value) || "";
-    const url = checkoutUrl(email);
+    const url = shopifyPayUrl(email) || checkoutUrl(email);
     if (url) {
       e.preventDefault();
-      window.open(url, "_blank", "noopener,noreferrer");
+      location.assign(url);
     }
   }
 });

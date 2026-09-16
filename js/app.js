@@ -53,9 +53,10 @@ function checkoutUrl(email) {
     parts.push(hit.variant.shopifyVariantId + ":" + l.qty);
   }
   const params = new URLSearchParams();
+  params.set("items", parts.join(","));
   params.set("discount", "BOGO");
-  if (email && email.trim()) params.set("checkout[email]", email.trim());
-  return "https://" + SHOP + "/cart/" + parts.join(",") + "?" + params.toString();
+  if (email && email.trim()) params.set("email", email.trim());
+  return "/.netlify/functions/checkout?" + params.toString();
 }
 function payMarks() {
   return `<div class="pay"><span>We accept</span><b>VISA</b><b>MC</b><b>AMEX</b><b>PayPal</b><b>DISC</b></div>`;
