@@ -423,7 +423,7 @@ footer { border-top: 1px solid var(--line); background: var(--paper); margin-top
   position: relative;
   min-height: calc(100svh - 64px);
   background: #070b14;
-  color: #fff;
+  color: inherit;
   overflow: hidden;
 }
 .home-hero-img {
@@ -627,3 +627,18 @@ header.top { border-bottom: 0; background: #fff; }
   .hero-vial.back { width: 50%; right: -2%; bottom: 6%; }
 }
 .home-hero-copy { max-width: 22rem; }
+
+.home-hero { background: radial-gradient(ellipse 50% 46% at 72% 78%, rgba(90,174,168,.16), transparent 70%), #f4f6f6 !important; color: #111827 !important; }
+.home-hero-copy { color: #111827; }
+.home-hero h1 { color: #111827 !important; }
+.home-hero h1 em { color: #2f8f88 !important; }
+.home-cta-fill { background: #111827 !important; }
+.home-cta-ghost { color: #111827 !important; }
+.home-kicker { color: #4b5563 !important; border-color: #d1d5db !important; background: #fff; }
+.home-note { color: #9ca3af !important; }
+.home-hero-stage { width: 88%; }
+.hero-vial { height: 100%; bottom: 0; }
+.hero-vial img { height: 86%; width: auto; max-width: none; filter: drop-shadow(0 18px 28px rgba(17,24,39,.18)); }
+.hero-vial span { background: #fff; color: #111827; border: 1px solid #e5e7eb; }
+.hero-vial.front { right: 18%; }
+.hero-vial.back { right: -6%; height: 92%; }
