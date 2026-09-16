@@ -3,37 +3,38 @@ function pdp(slug) {
   if (!p) return `<section class="wrap"><h1>Not found</h1><a href="/products">Back to Products</a></section>`;
   const vId = new URLSearchParams(location.search).get("v") || p.variants[0].id;
   const v = p.variants.find((x) => x.id === vId) || p.variants[0];
-  const related = catalogItems().filter((i) => i.product.category === p.category && i.product.slug !== p.slug).slice(0,4);
-  const chips = ["Fast shipping","Same-day dispatch","Third-party tested","U.S. accredited labs","99%+ purity","HPLC verified"];
-  return `<section class="wrap"><a class="back" href="/products">← Back to Products</a>
-    <div class="pdp"><div class="photo"><a class="coa" href="/verify">VIEW COA</a><img src="${v.photo}" alt="${p.name}"></div>
-    <div>
-      <p class="kicker">Research Peptide</p>
-      <h1>${p.name} (${v.strength})</h1>
-      <p style="margin-top:12px">Research Grade · Third-Party Verified</p>
-      <p class="mono">CAS: ${p.cas || "—"}<br>${p.formula || ""}<br>≥${v.purity || 99}% Pure</p>
-      <p style="margin-top:24px;max-width:420px;line-height:1.6">${p.desc || ""}</p>
-      ${p.variants.length > 1 ? `<p style="margin-top:28px;font-weight:500">Select Strength</p><div class="sizes">${p.variants.map((opt)=>`<button data-size="${opt.id}" class="${opt.id===v.id?"on":""}">${opt.strength}<br><small>${money(opt.price)}</small></button>`).join("")}</div>` : ""}
-      <p style="margin-top:28px;font-weight:500">Quantity</p>
-      <div class="qty"><div class="step"><button data-q="-">−</button><span id="qty">1</span><button data-q="+">+</button></div></div>
-      <div class="pdp-total"><strong id="pdp-total">${money(v.price)}</strong><span>TOTAL</span></div>
-      <button class="btn" id="add-pdp" data-id="${v.id}" data-price="${v.price}" style="width:100%;margin-top:16px">Add to Cart</button>
-      ${payMarks()}
-      <dl class="sku"><div><dt>Size</dt><dd>${v.strength}</dd></div><div><dt>SKU</dt><dd>${v.sku}</dd></div></dl>
-      <div class="chips">${chips.map((c)=>`<span>${c}</span>`).join("")}</div>
-    </div></div>
-    <div class="research">
-      <p class="kicker">Research</p>
-      <h2>Research overview</h2>
-      <h3>About this research material</h3>
-      <p>${p.desc || ""}</p>
-      <p>Supplied as a lyophilized reference for in-vitro and laboratory work only. Not for human or veterinary use.</p>
-      <h3>Analytical characterization</h3>
-      <p>Each lot is documented by reversed-phase HPLC for chromatographic purity and mass spectrometry for identity. Molecular weight ${p.mw || "—"}. Match the lot printed on the vial to the COA listed under Verify.</p>
-      <p class="muted">Research use only. Not evaluated by the FDA.</p>
+  const dose = (v.strength || "").replace(/\s+/g, "");
+  const strength = p.variants.length > 1
+    ? p.variants.map((opt)=>`<button type="button" data-size="${opt.id}" class="strength ${opt.id===v.id?"on":""}">${opt.strength.replace(/\s+/g,"")} <span class="bogo-pill">BOGO</span></button>`).join("")
+    : `<button type="button" class="strength on">Standard <span class="bogo-pill">BOGO</span></button>`;
+  return `<main class="amino-pdp">
+    <div class="amino-gallery">
+      <div class="amino-well"><span class="amino-sale">-15%</span><img src="${v.photo}" alt="${p.name} ${v.strength}"></div>
+      <div class="amino-thumbs">
+        <button type="button" class="on"><img src="${v.photo}" alt=""></button>
+        <button type="button" data-coa><img src="/img/coa-sheet.jpg" alt="COA"></button>
+      </div>
     </div>
-    ${related.length ? `<h2 style="margin-top:64px">You Might Also Like</h2><div class="grid" style="margin-top:24px">${related.map(card).join("")}</div>` : ""}
-  </section>`;
+    <div class="amino-buy">
+      <div class="amino-buy-head"><p class="amino-kicker">Research Peptide</p></div>
+      <h1 class="amino-title">${p.name} (${dose})</h1>
+      <div class="amino-verified">Research Grade · Third-Party Verified</div>
+      <div class="amino-chips"><span>CAS: ${p.cas || "—"}</span><span>${p.formula || ""}</span><span class="pure">≥${Math.floor(v.purity || 99)}% Pure</span></div>
+      <p class="amino-short">${p.name} Research Kit.</p>
+      <div class="bogo-banner"><strong>Buy 1 Get 1 FREE!</strong><p>Every vial you order automatically ships with a second vial FREE.</p></div>
+      <form class="add-to-cart-form" id="add-to-cart-form">
+        <div class="amino-field"><p>Select Strength</p><div class="amino-strength">${strength}</div></div>
+        <p class="amino-price">${money(v.price)}<small>per vial</small><s class="was">${money(compareAt(v.price))}</s></p>
+        <p class="bogo-copy">Buy 1, get 1 free — every vial you order automatically ships with a second vial FREE.</p>
+        <div class="amino-field"><p>Quantity</p>
+          <div class="amino-qty"><button type="button" class="qty-btn" data-q="-">-</button><span id="qty">1</span><button type="button" class="qty-btn" data-q="+">+</button></div>
+        </div>
+        <div class="amino-total"><div><strong>We'll ship you 2 vials</strong><span>You pay for 1 — 1 ships free</span><em class="amino-save">You save ${money(v.price)}</em></div><div class="amino-total-price">${money(v.price)}<small>TOTAL</small></div></div>
+        <button type="submit" class="amino-atc" id="add-pdp" data-id="${v.id}" data-price="${v.price}">Add to Cart</button>
+      </form>
+    </div>
+  </main>
+  <div id="coa-modal" class="modal-overlay" style="display:none"><div class="modal-content"><div class="modal-header"><h2>Certificate of Analysis (COA)</h2><button class="close-modal" type="button">&times;</button></div><div class="modal-body"><img src="/img/coa-sheet.jpg" class="coa-image" alt="COA"></div></div></div>`;
 }
 function simple(title, html) { return `<section class="wrap"><h1>${title}</h1><div style="max-width:640px;margin-top:24px;line-height:1.7">${html}</div></section>`; }
 function checkoutPage() {
@@ -89,20 +90,6 @@ function pageHTML() {
   return simple("Page not found", '<p><a href="/">Go home</a></p>');
 }
 function renderChrome() { const host = $("#chrome"); if (host) host.innerHTML = chrome(); }
-function renderGate() {
-  if (!$("#gate")) return;
-  if (sessionStorage.getItem(AGE_KEY) === "1") { $("#gate").innerHTML = ""; return; }
-  $("#gate").innerHTML = `<div class="gate"><div class="panel">
-    <div class="brand">nueva</div>
-    <p class="sub">Research use only</p>
-    <h2>Researcher verification</h2>
-    <p class="muted" style="margin-top:16px;line-height:1.6">Nueva Research supplies peptides exclusively to qualified researchers and laboratories for in-vitro use.</p>
-    <label><input type="checkbox" id="g1"> I confirm I am a qualified researcher purchasing for laboratory research only — not for human or veterinary use.</label>
-    <label><input type="checkbox" id="g2"> I confirm I am 21 years of age or older.</label>
-    <button class="btn" id="g-enter" disabled style="width:100%;margin-top:24px">Enter site →</button>
-    <p class="muted" style="text-align:center;font-size:12px;margin-top:20px">Not evaluated by the FDA.</p>
-  </div></div>`;
-}
 function openMenu() {
   $("#drawers").innerHTML = `<div class="drawer-bg" data-close></div><aside class="drawer left">
     <header><span class="logo">nueva</span><button data-close>${icon("x")}</button></header>
@@ -135,7 +122,6 @@ function openCart() {
 function render() {
   renderChrome();
   $("#app").innerHTML = pageHTML() + footer();
-  renderGate();
   window.scrollTo(0, 0);
 }
 function go(href) { const url = new URL(href, location.origin); history.pushState({}, "", url.pathname + url.search); render(); }
@@ -157,25 +143,27 @@ document.addEventListener("click", (e) => {
   if (size) go("/products/" + path().split("/")[2] + "?v=" + size.dataset.size);
   const qbtn = e.target.closest("[data-q]");
   if (qbtn) {
-    const el = $("#qty"); let n = Number(el.textContent);
+    const el = $("#quantity") || $("#qty");
+    let n = Number(el.value || el.textContent);
     n = qbtn.dataset.q === "+" ? n + 1 : Math.max(1, n - 1);
-    el.textContent = n;
+    if (el.value !== undefined) el.value = n; else el.textContent = n;
     const btn = $("#add-pdp");
-    if (btn) $("#pdp-total").textContent = money(Number(btn.dataset.price) * n);
+    if (btn) btn.textContent = "Add to Cart - " + money(Number(btn.dataset.price) * n);
   }
-  if (e.target.id === "add-pdp") addToCart(e.target.dataset.id, Number($("#qty").textContent || 1));
+  if (e.target.id === "add-pdp") {
+    e.preventDefault();
+    addToCart(e.target.dataset.id, Number(($("#quantity") || $("#qty")).value || $("#qty") && $("#qty").textContent || 1));
+  }
   const qty = e.target.closest("[data-qty]");
   if (qty) { setQty(qty.dataset.qty, Number(qty.dataset.n)); if (path() === "/checkout") render(); else openCart(); }
-  if (e.target.id === "g-enter") { sessionStorage.setItem(AGE_KEY, "1"); renderGate(); }
   if (e.target.id === "pay-now") {
     const email = ($("#ck-email") && $("#ck-email").value) || "";
     const url = checkoutUrl(email);
-    if (url) location.assign(url);
+    if (url) (window.top || window).location.assign(url);
   }
 });
 document.addEventListener("change", (e) => {
   if (e.target.id === "sort") { const p = new URLSearchParams(location.search); if (e.target.value === "popular") p.delete("sort"); else p.set("sort", e.target.value); go("/products" + (p.toString() ? "?" + p : "")); }
-  if (e.target.id === "g1" || e.target.id === "g2") { const b = $("#g-enter"); if (b) b.disabled = !($("#g1") && $("#g1").checked && $("#g2") && $("#g2").checked); }
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.target.id === "q" || e.target.id === "header-q")) {
@@ -187,4 +175,19 @@ document.addEventListener("keydown", (e) => {
   }
 });
 window.addEventListener("popstate", render);
+document.addEventListener("submit", (e) => {
+  if (e.target.id === "add-to-cart-form") {
+    e.preventDefault();
+    const btn = $("#add-pdp");
+    const el = $("#qty") || $("#quantity");
+    const n = Number((el && (el.value || el.textContent)) || 1);
+    if (btn) addToCart(btn.dataset.id, n);
+  }
+});
+document.addEventListener("click", (e2) => {
+  if (e2.target.closest("[data-coa]")) { const m = $("#coa-modal"); if (m) m.style.display = "flex"; }
+  if (e2.target.classList && (e2.target.classList.contains("close-modal") || e2.target.id === "coa-modal")) {
+    const m = $("#coa-modal"); if (m) m.style.display = "none";
+  }
+});
 fetch("/js/catalog.json").then((r) => r.json()).then((d) => { DATA = d; render(); });

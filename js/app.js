@@ -1,5 +1,4 @@
 const SHOP = "xk10qi-6m.myshopify.com";
-const AGE_KEY = "nueva-age-ok";
 const CART_KEY = "nueva-cart-v1";
 let DATA = { PRODUCTS: [], FORMATS: [], SORTS: [] };
 const $ = (s, e = document) => e.querySelector(s);
@@ -35,6 +34,8 @@ function setQty(id, qty) {
   saveCart(lines);
 }
 function cartCount() { return loadCart().reduce((n, l) => n + l.qty, 0); }
+function compareAt(price) { return Math.round(price * 1.182 * 100) / 100; }
+function shipQty(qty) { return Math.max(2, qty * 2); }
 function checkoutUrl(email) {
   const lines = loadCart(); if (!lines.length) return null;
   const parts = [];
@@ -43,9 +44,10 @@ function checkoutUrl(email) {
     if (!hit || !hit.variant.shopifyVariantId) return null;
     parts.push(hit.variant.shopifyVariantId + ":" + l.qty);
   }
-  let url = "https://" + SHOP + "/cart/" + parts.join(",");
-  if (email && email.trim()) url += "?checkout[email]=" + encodeURIComponent(email.trim());
-  return url;
+  const params = new URLSearchParams();
+  params.set("discount", "BOGO");
+  if (email && email.trim()) params.set("checkout[email]", email.trim());
+  return "https://" + SHOP + "/cart/" + parts.join(",") + "?" + params.toString();
 }
 function payMarks() {
   return `<div class="pay"><span>We accept</span><b>VISA</b><b>MC</b><b>AMEX</b><b>PayPal</b><b>DISC</b></div>`;
@@ -61,18 +63,15 @@ function icon(name) {
 }
 function chrome() {
   const n = cartCount();
-  return `<div class="banner">Free Shipping on Orders Over $200 | Same-Day Dispatch Before 2PM ET</div>
-  <header class="top"><div class="bar">
+  return `<header class="top"><div class="amino-header">
     <button class="icon" data-act="menu" aria-label="Open menu">${icon("menu")}</button>
-    <a class="logo" href="/">nueva</a>
-    <div style="display:flex">
-      <button class="icon" data-act="search" aria-label="Search">${icon("search")}</button>
+    <a class="logo amino-logo" href="/">nueva</a>
+    <div style="display:flex;justify-content:flex-end">
+      <a class="icon" href="/contact" aria-label="Account">${icon("search")}</a>
       <button class="icon" data-act="cart" aria-label="Open cart">${icon("bag")}${n ? `<span class="badge">${n}</span>` : ""}</button>
     </div>
-  </div>
-  <div class="search-drop" id="search-drop" hidden><input id="header-q" placeholder="Search products..."></div>
-  </header>
-  <div id="drawers"></div><div id="gate"></div>`;
+  </div></header>
+  <div id="drawers"></div>`;
 }
 function footer() {
   return `<footer><div class="foot">
@@ -85,33 +84,37 @@ function footer() {
 }
 function card(item) {
   return `<article class="card">
-    <a href="/products/${item.product.slug}?v=${item.key}"><div class="photo"><img src="${item.variant.photo}" alt="${item.title}"></div></a>
-    <div class="meta"><a href="/products/${item.product.slug}?v=${item.key}"><h3>${item.title}</h3><p>${money(item.variant.price)}</p></a>
+    <a href="/products/${item.product.slug}?v=${item.key}"><div class="photo"><span class="amino-sale">-15%</span><span class="card-bogo">BOGO</span><img src="${item.variant.photo}" alt="${item.title}"></div></a>
+    <div class="meta"><a href="/products/${item.product.slug}?v=${item.key}"><h3>${item.title}</h3><p>${money(item.variant.price)} <s class="was">${money(compareAt(item.variant.price))}</s></p><p class="bogo-mini">Buy 1 Get 1 Free</p></a>
     <button class="plus" data-add="${item.key}" aria-label="Add ${item.title}">+</button></div>
   </article>`;
 }
 function home() {
   const items = catalogItems();
-  const featured = ["tirzepatide-10mg","tesamorelin-10mg","ghk-bpc-tb-70mg","nad-500mg"].map((k) => items.find((i) => i.key === k)).filter(Boolean);
-  const heroes = featured.slice(0, 3);
-  return `<section class="hero"><div>
-    <h1>Research peptides, distilled to the essentials.</h1>
-    <p class="lede">99%+ purity. Third-party tested. Delivered to your lab.</p>
-    <a class="btn" href="/products">Shop peptides</a></div>
-    <div class="stack">${heroes.map((h) => `<a href="/products/${h.product.slug}?v=${h.key}"><img src="${h.variant.photo}" alt="${h.title}"></a>`).join("")}</div>
+  const keys = ["tirzepatide-10mg","tesamorelin-10mg","bpc-157-10mg","ghk-cu-50mg","nad-500mg","epitalon-50mg","tb-500-10mg","bpc-tb-20mg"];
+  const featured = keys.map((k) => items.find((i) => i.key === k)).filter(Boolean);
+  return `<section class="home-hero">
+    <img src="/img/hero-home.jpg" alt="Nueva research peptides" class="home-hero-img">
+    <div class="home-hero-copy">
+      <p class="home-kicker">● Limited-time deals</p>
+      <h1>Buy More,<br>Get More <em>Free</em></h1>
+      <div class="home-cta">
+        <a class="home-cta-fill" href="/products">Shop the deals →</a>
+        <a class="home-cta-ghost" href="/products">Shop all</a>
+      </div>
+      <p class="home-note">Free items added automatically at checkout</p>
+    </div>
   </section>
-  <div class="stats"><div class="inner">
-    <div><strong>99%+</strong><span>Purity</span></div>
-    <div><strong>2–5 Day</strong><span>Delivery</span></div>
-    <div><strong>USA</strong><span>Fulfilled</span></div>
-  </div></div>
-  <section class="wrap"><div class="section-head"><h2>Featured</h2><a href="/products">View all →</a></div>
-  <div class="grid">${featured.map(card).join("")}</div></section>
-  <section class="trust"><div class="inner">
-    <div><h3>Independently tested</h3><p>Every lot is identity-checked by HPLC and mass spectrometry before it ships.</p></div>
-    <div><h3>Ships from the US</h3><p>Same-day dispatch before 2PM ET. Tracked two-day air on qualifying orders.</p></div>
-    <div><h3>Research use only</h3><p>Sold strictly as laboratory research chemicals. Not for human or veterinary use.</p></div>
-  </div></section>`;
+  <div class="home-trust">
+    <article><div><h3>99%+ Purity</h3><p>HPLC verified</p></div></article>
+    <article><div><h3>U.S. Lab Tested</h3><p>Accredited labs</p></div></article>
+    <article><div><h3>Same-Day Ship</h3><p>Before 2PM ET</p></div></article>
+  </div>
+  <section class="home-best">
+    <div class="home-best-head"><p>Featured</p><h2>Best Sellers</h2></div>
+    <div class="home-best-row">${featured.map((item)=>`<div class="home-best-card">${card(item)}</div>`).join("")}</div>
+  </section>
+  <section class="home-strip"><p>Buy 1 Get 1 Free on every vial</p><a href="/products">Shop the deals →</a></section>`;
 }
 function productsPage() {
   const params = new URLSearchParams(location.search);
