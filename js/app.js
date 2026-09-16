@@ -89,19 +89,19 @@ function home() {
   const items = catalogItems();
   const featured = ["tirzepatide-10mg","tesamorelin-10mg","ghk-bpc-tb-70mg","nad-500mg"].map((k) => items.find((i) => i.key === k)).filter(Boolean);
   const heroes = featured.slice(0, 3);
-  const pos = ["top:0;left:18%;z-index:3","top:48px;left:0;z-index:2","top:96px;left:32%;z-index:1"];
   return `<section class="hero"><div>
+    <p class="kicker">HPLC / MS documented · USA fulfilled</p>
     <h1>Research peptides, distilled to the essentials.</h1>
     <p class="lede">99%+ purity. Third-party tested. Delivered to your lab.</p>
     <a class="btn" href="/products">Shop peptides</a></div>
-    <div class="stack">${heroes.map((h,i) => `<a href="/products/${h.product.slug}?v=${h.key}" style="${pos[i]}"><img src="${h.variant.photo}" alt="${h.title}"></a>`).join("")}</div>
+    <div class="stack">${heroes.map((h) => `<a href="/products/${h.product.slug}?v=${h.key}"><img src="${h.variant.photo}" alt="${h.title}"></a>`).join("")}</div>
   </section>
   <div class="stats"><div class="inner">
     <div><strong>99%+</strong><span>Purity</span></div>
     <div><strong>2–5 Day</strong><span>Delivery</span></div>
     <div><strong>USA</strong><span>Fulfilled</span></div>
   </div></div>
-  <section class="wrap"><div class="section-head"><h2>Featured peptides</h2><a href="/products">View all products →</a></div>
+  <section class="wrap"><div class="section-head"><h2>Featured</h2><a href="/products">View all →</a></div>
   <div class="grid">${featured.map(card).join("")}</div></section>
   <section class="trust"><div class="inner">
     <div><h3>Independently tested</h3><p>Every lot is identity-checked by HPLC and mass spectrometry before it ships.</p></div>
