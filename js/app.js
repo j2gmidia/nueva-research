@@ -1,34 +1,100 @@
 const SHOP = "xk10qi-6m.myshopify.com";
-let DATA = { PRODUCTS: [] };
+const AGE_KEY = "nueva-age-ok";
+const CART_KEY = "nueva-cart-v1";
+let DATA = { PRODUCTS: [], FORMATS: [], SORTS: [] };
 const $ = (s, e = document) => e.querySelector(s);
 const money = (n) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
-function items() {
-  return DATA.PRODUCTS.flatMap((p) => p.variants.map((v) => ({ ...v, product: p, title: p.name + " " + v.strength })));
+function path() { return location.pathname.replace(/\/+$/, "") || "/"; }
+function catalogItems() {
+  return DATA.PRODUCTS.flatMap((p) => p.variants.map((v) => ({ key: v.id, title: p.name + " " + v.strength, product: p, variant: v })));
+}
+function findProduct(slug) { return DATA.PRODUCTS.find((p) => p.slug === slug); }
+function findVariant(id) {
+  for (const p of DATA.PRODUCTS) {
+    const v = p.variants.find((x) => x.id === id);
+    if (v) return { product: p, variant: v };
+  }
+}
+function formatOf(p) {
+  if (p.form === "Capsules") return "capsule";
+  if (p.form === "Sterile vial") return "reagent";
+  return "vial";
+}
+function loadCart() { try { return JSON.parse(localStorage.getItem(CART_KEY) || "[]"); } catch { return []; } }
+function saveCart(lines) { localStorage.setItem(CART_KEY, JSON.stringify(lines)); renderChrome(); }
+function addToCart(id, qty) {
+  const lines = loadCart();
+  const hit = lines.find((l) => l.id === id);
+  if (hit) hit.qty += qty; else lines.push({ id, qty });
+  saveCart(lines); openCart();
+}
+function setQty(id, qty) {
+  let lines = loadCart();
+  if (qty <= 0) lines = lines.filter((l) => l.id !== id);
+  else { const hit = lines.find((l) => l.id === id); if (hit) hit.qty = qty; }
+  saveCart(lines);
+}
+function cartCount() { return loadCart().reduce((n, l) => n + l.qty, 0); }
+function checkoutUrl() {
+  const lines = loadCart(); if (!lines.length) return null;
+  const parts = [];
+  for (const l of lines) {
+    const hit = findVariant(l.id);
+    if (!hit || !hit.variant.shopifyVariantId) return null;
+    parts.push(hit.variant.shopifyVariantId + ":" + l.qty);
+  }
+  return "https://" + SHOP + "/cart/" + parts.join(",");
+}
+function icon(name) {
+  const s = {
+    menu: '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6h14M3 10h14M3 14h14"/></svg>',
+    search: '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg>',
+    bag: '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 8V6a4 4 0 018 0v2M5 8h14l-1.2 10H6.2L5 8z"/></svg>',
+    x: '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5l10 10M15 5L5 15"/></svg>'
+  };
+  return s[name] || "";
 }
 function chrome() {
+  const n = cartCount();
   return `<div class="banner">Free Shipping on Orders Over $200 | Same-Day Dispatch Before 2PM ET</div>
   <header class="top"><div class="bar">
-    <a class="icon" href="/products" aria-label="Menu">☰</a>
+    <button class="icon" data-act="menu" aria-label="Open menu">${icon("menu")}</button>
     <a class="logo" href="/">nueva</a>
-    <a class="icon" href="/checkout" aria-label="Cart">bag</a>
-  </div></header>`;
+    <div style="display:flex">
+      <button class="icon" data-act="search" aria-label="Search">${icon("search")}</button>
+      <button class="icon" data-act="cart" aria-label="Open cart">${icon("bag")}${n ? `<span class="badge">${n}</span>` : ""}</button>
+    </div>
+  </div>
+  <div class="search-drop" id="search-drop" hidden><input id="header-q" placeholder="Search products..."></div>
+  </header>
+  <div id="drawers"></div><div id="gate"></div>`;
 }
-function card(i) {
-  return `<article class="card"><a href="/products/${i.product.slug}?v=${i.id}">
-    <div class="photo"><img src="${i.photo}" alt="${i.title}"></div></a>
-    <div class="meta"><a href="/products/${i.product.slug}?v=${i.id}"><h3>${i.title}</h3><p>${money(i.price)}</p></a>
-    <a class="plus" href="https://${SHOP}/cart/${i.shopifyVariantId}:1" target="_blank" rel="noopener">+</a></div></article>`;
+function footer() {
+  return `<footer><div class="foot">
+    <div><a class="logo" href="/">nueva</a><p class="muted">Research Use Only</p><p><a href="mailto:support@nuevaresearch.com">support@nuevaresearch.com</a></p></div>
+    <div><h4>Products</h4><a href="/products">All Products</a><a href="/products?format=vial">Vials</a><a href="/products?format=capsule">Capsules</a></div>
+    <div><h4>Company</h4><a href="/about">About</a><a href="/contact">Contact</a><a href="/wholesale">Wholesale</a><a href="/verify">Verify / COA</a></div>
+    <div><h4>Legal</h4><a href="/legal">Research disclaimer</a><a href="/legal">Terms</a><a href="/legal">Privacy</a></div>
+  </div>
+  <p class="legal">© 2026 Nueva Research. All listed materials are sold strictly as laboratory research chemicals. Not evaluated by the FDA. Not intended to diagnose, treat, cure, or prevent any disease.</p></footer>`;
+}
+function card(item) {
+  return `<article class="card">
+    <a href="/products/${item.product.slug}?v=${item.key}"><div class="photo"><img src="${item.variant.photo}" alt="${item.title}"></div></a>
+    <div class="meta"><a href="/products/${item.product.slug}?v=${item.key}"><h3>${item.title}</h3><p>${money(item.variant.price)}</p></a>
+    <button class="plus" data-add="${item.key}" aria-label="Add ${item.title}">+</button></div>
+  </article>`;
 }
 function home() {
-  const all = items();
-  const featured = ["tirzepatide-30mg","tesamorelin-10mg","ghk-bpc-tb-70mg","nad-500mg"].map((k) => all.find((i) => i.id === k)).filter(Boolean);
+  const items = catalogItems();
+  const featured = ["tirzepatide-10mg","tesamorelin-10mg","ghk-bpc-tb-70mg","nad-500mg"].map((k) => items.find((i) => i.key === k)).filter(Boolean);
   const heroes = featured.slice(0, 3);
   const pos = ["top:0;left:18%;z-index:3","top:48px;left:0;z-index:2","top:96px;left:32%;z-index:1"];
   return `<section class="hero"><div>
     <h1>Research peptides, distilled to the essentials.</h1>
     <p class="lede">99%+ purity. Third-party tested. Delivered to your lab.</p>
     <a class="btn" href="/products">Shop peptides</a></div>
-    <div class="stack">${heroes.map((h, i) => `<a href="/products/${h.product.slug}?v=${h.id}" style="${pos[i]}"><img src="${h.photo}" alt="${h.title}"></a>`).join("")}</div>
+    <div class="stack">${heroes.map((h,i) => `<a href="/products/${h.product.slug}?v=${h.key}" style="${pos[i]}"><img src="${h.variant.photo}" alt="${h.title}"></a>`).join("")}</div>
   </section>
   <div class="stats"><div class="inner">
     <div><strong>99%+</strong><span>Purity</span></div>
@@ -43,50 +109,29 @@ function home() {
     <div><h3>Research use only</h3><p>Sold strictly as laboratory research chemicals. Not for human or veterinary use.</p></div>
   </div></section>`;
 }
-function products() {
-  return `<section class="wrap"><h1 style="font-size:clamp(40px,6vw,64px)">Products</h1>
-    <div class="grid">${items().map(card).join("")}</div></section>`;
+function productsPage() {
+  const params = new URLSearchParams(location.search);
+  const q = (params.get("q") || "").trim().toLowerCase();
+  const format = params.get("format") || "all";
+  const sort = params.get("sort") || "popular";
+  let list = catalogItems().filter((item) => {
+    if (format !== "all" && formatOf(item.product) !== format) return false;
+    if (!q) return true;
+    return (item.title + " " + (item.product.aliases || "") + " " + item.variant.sku).toLowerCase().includes(q);
+  });
+  list.sort((a,b) => {
+    if (sort === "az") return a.title.localeCompare(b.title);
+    if (sort === "za") return b.title.localeCompare(a.title);
+    if (sort === "price-asc") return a.variant.price - b.variant.price;
+    if (sort === "price-desc") return b.variant.price - a.variant.price;
+    return Number(!!b.product.featured) - Number(!!a.product.featured);
+  });
+  return `<section class="wrap">
+    <h1 style="font-size:clamp(40px,6vw,64px)">Products</h1>
+    <div class="searchrow"><input id="q" placeholder="Search products..." value="${params.get("q") || ""}">
+      <label class="muted">Sort by: <select id="sort">${(DATA.SORTS||[]).map((s)=>`<option value="${s.id}" ${s.id===sort?"selected":""}>${s.name}</option>`).join("")}</select></label>
+    </div>
+    <div class="tabs">${(DATA.FORMATS||[]).map((f)=>`<button data-format="${f.id}" class="${(f.id==="all"?format==="all":format===f.id)?"on":""}">${f.name}</button>`).join("")}</div>
+    <div class="grid">${list.map(card).join("") || '<p class="muted">No products found.</p>'}</div>
+  </section>`;
 }
-function pdp(slug) {
-  const p = DATA.PRODUCTS.find((x) => x.slug === slug);
-  if (!p) return `<section class="wrap"><h1>Not found</h1><a href="/products">Back</a></section>`;
-  const id = new URLSearchParams(location.search).get("v");
-  const v = p.variants.find((x) => x.id === id) || p.variants[0];
-  const url = v.shopifyVariantId ? `https://${SHOP}/cart/${v.shopifyVariantId}:1` : "#";
-  return `<section class="wrap"><a class="back" href="/products">← Back to Products</a>
-    <div class="pdp"><div class="photo"><img src="${v.photo}" alt=""></div>
-    <div><h1>${p.name} ${v.strength}</h1><p class="price">${money(v.price)}</p><p>${p.desc || ""}</p>
-    <div class="sizes">${p.variants.map((o) => `<a class="btn ghost" href="/products/${p.slug}?v=${o.id}">${o.strength}</a>`).join("")}</div>
-    <a class="btn" href="${url}" target="_blank" rel="noopener">Add to Cart</a>
-    <p class="muted" style="text-align:center;font-size:12px;margin-top:12px">Research use only. Payment via Shopify Checkout.</p>
-    </div></div></section>`;
-}
-function footer() {
-  return `<footer><div class="foot"><div><a class="logo" href="/">nueva</a><p class="muted">Research Use Only</p>
-    <p><a href="mailto:support@nuevaresearch.com">support@nuevaresearch.com</a></p></div>
-    <div><h4>Products</h4><a href="/products">All Products</a></div>
-    <div><h4>Legal</h4><a href="/legal">Research disclaimer</a></div></div>
-    <p class="legal">© 2026 Nueva Research. All listed materials are sold strictly as laboratory research chemicals. Not evaluated by the FDA. Not for human or veterinary use.</p></footer>`;
-}
-function render() {
-  const p = location.pathname.replace(/\/+$/, "") || "/";
-  const host = $("#chrome");
-  if (host) host.innerHTML = chrome();
-  let html = home();
-  if (p === "/products" || p === "/catalog") html = products();
-  else if (p.startsWith("/products/")) html = pdp(p.split("/")[2]);
-  else if (p === "/checkout") html = `<section class="wrap"><h1>Your cart</h1><p class="muted">Add items with + on a product, then checkout on Shopify.</p><a class="btn" href="/products">View Catalog</a></section>`;
-  else if (p === "/legal" || p === "/about") html = `<section class="wrap"><h1>Research disclaimer</h1><p>Sold strictly as laboratory research chemicals. Not for human or veterinary use.</p></section>`;
-  $("#app").innerHTML = html + footer();
-  window.scrollTo(0, 0);
-}
-document.addEventListener("click", (e) => {
-  const a = e.target.closest("a");
-  if (a && a.getAttribute("href") && a.getAttribute("href").startsWith("/") && !a.target) {
-    e.preventDefault();
-    history.pushState({}, "", a.getAttribute("href"));
-    render();
-  }
-});
-window.addEventListener("popstate", render);
-fetch("/js/catalog.json").then((r) => r.json()).then((d) => { DATA = d; render(); });
