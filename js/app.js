@@ -94,7 +94,10 @@ function home() {
   const keys = ["tirzepatide-10mg","tesamorelin-10mg","bpc-157-10mg","ghk-cu-50mg","nad-500mg","epitalon-50mg","tb-500-10mg","bpc-tb-20mg"];
   const featured = keys.map((k) => items.find((i) => i.key === k)).filter(Boolean);
   return `<section class="home-hero">
-    <img src="/img/hero-home.jpg" alt="Nueva research peptides" class="home-hero-img">
+    <div class="home-hero-vials" aria-hidden="true">
+      <img src="/img/cut-tesa.png" alt="" class="vial-a">
+      <img src="/img/cut-tirz-10.png" alt="" class="vial-b">
+    </div>
     <div class="home-hero-copy">
       <p class="home-kicker">● Limited-time deals</p>
       <h1>Buy More,<br>Get More <em>Free</em></h1>

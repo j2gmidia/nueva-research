@@ -609,3 +609,27 @@ header.top { border-bottom: 0; background: #fff; }
 .card-bogo { position: absolute; top: 16px; right: 12px; z-index: 2; background: #22c55e; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; letter-spacing: .06em; }
 .bogo-mini { color: #16a34a; font-size: 12px; font-weight: 600; margin: 4px 0 0; }
 .card .was { color: #9ca3af; text-decoration: line-through; font-size: 13px; font-weight: 500; }
+
+.home-hero-vials {
+  position: absolute;
+  inset: 6% -6% 0 38%;
+  pointer-events: none;
+  z-index: 1;
+}
+.home-hero-vials img {
+  position: absolute;
+  height: 92%;
+  width: auto;
+  max-width: none;
+  bottom: -4%;
+  object-fit: contain;
+  filter: drop-shadow(0 28px 40px rgba(0,0,0,.45));
+}
+.home-hero-vials .vial-a { right: 28%; z-index: 2; }
+.home-hero-vials .vial-b { right: 2%; z-index: 1; transform: scale(.92); }
+@media (max-width: 700px) {
+  .home-hero-vials { inset: 28% -18% 0 22%; }
+  .home-hero-vials img { height: 78%; }
+}
+.photo { background: #fff !important; }
+.amino-well { background: #fff !important; }
