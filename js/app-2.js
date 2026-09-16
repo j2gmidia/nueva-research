@@ -47,11 +47,16 @@ function renderChrome() { const host = $("#chrome"); if (host) host.innerHTML = 
 function renderGate() {
   if (!$("#gate")) return;
   if (sessionStorage.getItem(AGE_KEY) === "1") { $("#gate").innerHTML = ""; return; }
-  $("#gate").innerHTML = `<div class="gate"><div class="panel"><h2>Research use only</h2>
-    <p class="muted">These materials are not for human or veterinary use.</p>
-    <label><input type="checkbox" id="g1"> I am a qualified researcher purchasing for laboratory use only.</label>
-    <label><input type="checkbox" id="g2"> I am 21 years of age or older.</label>
-    <button class="btn" id="g-enter" disabled style="width:100%;margin-top:16px">Enter</button></div></div>`;
+  $("#gate").innerHTML = `<div class="gate"><div class="panel">
+    <div class="brand">nueva</div>
+    <p class="sub">Research use only</p>
+    <h2>Researcher verification</h2>
+    <p class="muted" style="margin-top:16px;line-height:1.6">Nueva Research supplies peptides exclusively to qualified researchers and laboratories for in-vitro use.</p>
+    <label><input type="checkbox" id="g1"> I confirm I am a qualified researcher purchasing for laboratory research only — not for human or veterinary use.</label>
+    <label><input type="checkbox" id="g2"> I confirm I am 21 years of age or older.</label>
+    <button class="btn" id="g-enter" disabled style="width:100%;margin-top:24px">Enter site →</button>
+    <p class="muted" style="text-align:center;font-size:12px;margin-top:20px">Not evaluated by the FDA.</p>
+  </div></div>`;
 }
 function openMenu() {
   $("#drawers").innerHTML = `<div class="drawer-bg" data-close></div><aside class="drawer left">
