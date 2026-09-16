@@ -35,7 +35,7 @@ function setQty(id, qty) {
   saveCart(lines);
 }
 function cartCount() { return loadCart().reduce((n, l) => n + l.qty, 0); }
-function checkoutUrl() {
+function checkoutUrl(email) {
   const lines = loadCart(); if (!lines.length) return null;
   const parts = [];
   for (const l of lines) {
@@ -43,7 +43,12 @@ function checkoutUrl() {
     if (!hit || !hit.variant.shopifyVariantId) return null;
     parts.push(hit.variant.shopifyVariantId + ":" + l.qty);
   }
-  return "https://" + SHOP + "/cart/" + parts.join(",");
+  let url = "https://" + SHOP + "/cart/" + parts.join(",");
+  if (email && email.trim()) url += "?checkout[email]=" + encodeURIComponent(email.trim());
+  return url;
+}
+function payMarks() {
+  return `<div class="pay"><span>We accept</span><b>VISA</b><b>MC</b><b>AMEX</b><b>PayPal</b><b>DISC</b></div>`;
 }
 function icon(name) {
   const s = {
@@ -90,7 +95,6 @@ function home() {
   const featured = ["tirzepatide-10mg","tesamorelin-10mg","ghk-bpc-tb-70mg","nad-500mg"].map((k) => items.find((i) => i.key === k)).filter(Boolean);
   const heroes = featured.slice(0, 3);
   return `<section class="hero"><div>
-    <p class="kicker">HPLC / MS documented · USA fulfilled</p>
     <h1>Research peptides, distilled to the essentials.</h1>
     <p class="lede">99%+ purity. Third-party tested. Delivered to your lab.</p>
     <a class="btn" href="/products">Shop peptides</a></div>
@@ -128,9 +132,8 @@ function productsPage() {
   });
   return `<section class="wrap">
     <h1 style="font-size:clamp(40px,6vw,64px)">Products</h1>
-    <div class="searchrow"><input id="q" placeholder="Search products..." value="${params.get("q") || ""}">
-      <label class="muted">Sort by: <select id="sort">${(DATA.SORTS||[]).map((s)=>`<option value="${s.id}" ${s.id===sort?"selected":""}>${s.name}</option>`).join("")}</select></label>
-    </div>
+    <p class="muted" style="margin-top:8px">Browse our selection of research-grade peptides.</p>
+    <div class="searchrow"><label class="muted">Sort by: <select id="sort">${(DATA.SORTS||[]).map((s)=>`<option value="${s.id}" ${s.id===sort?"selected":""}>${s.name}</option>`).join("")}</select></label></div>
     <div class="tabs">${(DATA.FORMATS||[]).map((f)=>`<button data-format="${f.id}" class="${(f.id==="all"?format==="all":format===f.id)?"on":""}">${f.name}</button>`).join("")}</div>
     <div class="grid">${list.map(card).join("") || '<p class="muted">No products found.</p>'}</div>
   </section>`;
