@@ -63,9 +63,10 @@ function icon(name) {
 }
 function chrome() {
   const n = cartCount();
-  return `<header class="top"><div class="amino-header">
+  return `<header class="top"><div class="promo-ticker" role="status"><div class="promo-track">${Array.from({length:8}).map(()=>`<p><span>Buy 1 — Get 1 Free</span><span class="promo-dot">•</span><span>Free shipping on orders $250+</span><span class="promo-dot">•</span></p>`).join("")}</div></div>
+  <div class="amino-header">
     <button class="icon" data-act="menu" aria-label="Open menu">${icon("menu")}</button>
-    <a class="logo amino-logo" href="/">nueva</a>
+    <a class="amino-logo" href="/" aria-label="Nueva home"><img src="/img/nueva-mark.svg?v=2" alt="NUEVA"></a>
     <div style="display:flex;justify-content:flex-end">
       <a class="icon" href="/contact" aria-label="Account">${icon("search")}</a>
       <button class="icon" data-act="cart" aria-label="Open cart">${icon("bag")}${n ? `<span class="badge">${n}</span>` : ""}</button>
@@ -75,7 +76,7 @@ function chrome() {
 }
 function footer() {
   return `<footer><div class="foot">
-    <div><a class="logo" href="/">nueva</a><p class="muted">Research Use Only</p><p><a href="mailto:support@nuevaresearch.com">support@nuevaresearch.com</a></p></div>
+    <div><a href="/"><img src="/img/nueva-mark.svg?v=2" alt="NUEVA" class="foot-logo"></a><p><a href="mailto:support@nuevaresearch.com">support@nuevaresearch.com</a></p></div>
     <div><h4>Products</h4><a href="/products">All Products</a><a href="/products?format=vial">Vials</a><a href="/products?format=capsule">Capsules</a></div>
     <div><h4>Company</h4><a href="/about">About</a><a href="/contact">Contact</a><a href="/wholesale">Wholesale</a><a href="/verify">Verify / COA</a></div>
     <div><h4>Legal</h4><a href="/legal">Research disclaimer</a><a href="/legal">Terms</a><a href="/legal">Privacy</a></div>
@@ -96,7 +97,7 @@ function home() {
   return `<section class="home-hero">
     <div class="home-hero-inner">
     <div class="home-hero-copy">
-      <p class="home-kicker">● Limited-time deals</p>
+      <p class="home-kicker"><span class="pulse-dot"></span> Limited-time deals</p>
       <h1>Buy More,<br>Get More <em>Free</em></h1>
       <div class="home-cta">
         <a class="home-cta-fill" href="/products">Shop the deals →</a>
@@ -105,25 +106,48 @@ function home() {
       <p class="home-note">Free items added automatically at checkout</p>
     </div>
     <div class="home-hero-stage">
-      <a class="hero-vial front" href="/products/tesamorelin?v=tesamorelin-10mg">
-        <img src="/img/cut-tesa.png" alt="Tesamorelin 10mg"><span>Tesamorelin 10mg</span>
+      <div class="hero-floor" aria-hidden="true"></div>
+      <a class="hero-vial b" href="/products/tirzepatide?v=tirzepatide-10mg">
+        <img src="/img/cut-tirz-10.png" alt="Tirzepatide 10mg"><span>Tirzepatide</span>
       </a>
-      <a class="hero-vial back" href="/products/tirzepatide?v=tirzepatide-10mg">
-        <img src="/img/cut-tirz-10.png" alt="Tirzepatide 10mg"><span>Tirzepatide 10mg</span>
+      <a class="hero-vial a" href="/products/tesamorelin?v=tesamorelin-10mg">
+        <img src="/img/cut-tesa.png" alt="Tesamorelin 10mg"><span>Tesamorelin</span>
       </a>
     </div>
     </div>
   </section>
-  <div class="home-trust">
-    <article><div><h3>99%+ Purity</h3><p>HPLC verified</p></div></article>
-    <article><div><h3>U.S. Lab Tested</h3><p>Accredited labs</p></div></article>
-    <article><div><h3>Same-Day Ship</h3><p>Before 2PM ET</p></div></article>
-  </div>
+  <div class="home-trust-wrap"><div class="home-trust">
+    <article><span class="home-trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 3h6l1 4H8z"/><path d="M8 7h8v10a4 4 0 01-8 0V7z"/></svg></span><div><h3>99%+ Purity</h3><p>HPLC verified</p></div></article>
+    <article><span class="home-trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9.5C7.5 20.5 4 17 4 12V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg></span><div><h3>U.S. Lab Tested</h3><p>Third-party COA</p></div></article>
+    <article><span class="home-trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg></span><div><h3>Same-Day Ship</h3><p>Before 2PM ET</p></div></article>
+  </div></div>
   <section class="home-best">
     <div class="home-best-head"><p>Featured</p><h2>Best Sellers</h2></div>
     <div class="home-best-row">${featured.map((item)=>`<div class="home-best-card">${card(item)}</div>`).join("")}</div>
   </section>
-  <section class="home-strip"><p>Buy 1 Get 1 Free on every vial</p><a href="/products">Shop the deals →</a></section>`;
+  <section class="nfc-band">
+    <div class="nfc-copy">
+      <p class="nfc-kicker">Lot Documentation & COA Access</p>
+      <h2>NFC-Verified.</h2>
+      <p class="nfc-lead">Tap the vial. Verify the lot. View available documentation.</p>
+      <ul class="nfc-list">
+        <li><a href="/verify"><span class="nfc-ico">✓</span> Verify Authenticity</a></li>
+        <li><a href="/verify"><span class="nfc-ico">≡</span> View COA</a></li>
+        <li><a href="/verify"><span class="nfc-ico">☰</span> Batch Transparency</a></li>
+      </ul>
+    </div>
+    <div class="nfc-photo"><img src="/img/nfc-verified.jpg" alt="NFC verification with vial and authenticated documentation on phone"><span class="nfc-pulse"></span></div>
+  </section>
+  <section class="home-strip">
+    <div class="home-strip-inner">
+      <div>
+        <p class="home-strip-kicker"><span class="pulse-dot"></span> Limited-time offer</p>
+        <h2>Buy 1, get 1 free.</h2>
+        <p class="home-strip-sub">On every vial. The extra unit is added automatically at checkout.</p>
+      </div>
+      <a class="home-strip-cta" href="/products">Shop the deals →</a>
+    </div>
+  </section>`;
 }
 function productsPage() {
   const params = new URLSearchParams(location.search);
