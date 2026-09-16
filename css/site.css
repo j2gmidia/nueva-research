@@ -610,26 +610,20 @@ header.top { border-bottom: 0; background: #fff; }
 .bogo-mini { color: #16a34a; font-size: 12px; font-weight: 600; margin: 4px 0 0; }
 .card .was { color: #9ca3af; text-decoration: line-through; font-size: 13px; font-weight: 500; }
 
-.home-hero-vials {
-  position: absolute;
-  inset: 6% -6% 0 38%;
-  pointer-events: none;
-  z-index: 1;
-}
-.home-hero-vials img {
-  position: absolute;
-  height: 92%;
-  width: auto;
-  max-width: none;
-  bottom: -4%;
-  object-fit: contain;
-  filter: drop-shadow(0 28px 40px rgba(0,0,0,.45));
-}
-.home-hero-vials .vial-a { right: 28%; z-index: 2; }
-.home-hero-vials .vial-b { right: 2%; z-index: 1; transform: scale(.92); }
-@media (max-width: 700px) {
-  .home-hero-vials { inset: 28% -18% 0 22%; }
-  .home-hero-vials img { height: 78%; }
-}
 .photo { background: #fff !important; }
 .amino-well { background: #fff !important; }
+
+.home-hero-inner { position: relative; z-index: 2; min-height: calc(100svh - 64px); max-width: 1240px; margin: 0 auto; padding: 2.4rem 1.15rem 0; }
+.home-hero-stage { position: absolute; right: -10%; top: 4%; bottom: -8%; width: 78%; z-index: 1; }
+.hero-vial { position: absolute; bottom: 4%; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.hero-vial img { width: 100%; height: auto; filter: drop-shadow(0 32px 48px rgba(0,0,0,.55)); }
+.hero-vial span { margin-top: .35rem; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); color: #fff; font-size: .7rem; font-weight: 700; padding: .28rem .7rem; border-radius: 999px; }
+.hero-vial.front { right: 32%; width: 58%; z-index: 3; }
+.hero-vial.back { right: 2%; width: 50%; z-index: 2; }
+@media (min-width: 900px) {
+  .home-hero-inner { display: grid; grid-template-columns: minmax(300px,.78fr) 1.22fr; align-items: center; padding: 1.5rem 1.5rem 0; }
+  .home-hero-stage { position: relative; right: auto; top: auto; bottom: auto; width: auto; height: calc(100svh - 88px); }
+  .hero-vial.front { width: 58%; right: 26%; bottom: 2%; }
+  .hero-vial.back { width: 50%; right: -2%; bottom: 6%; }
+}
+.home-hero-copy { max-width: 22rem; }
