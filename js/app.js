@@ -103,7 +103,6 @@ function home() {
         <a class="home-cta-fill" href="/products">Shop the deals →</a>
         <a class="home-cta-ghost" href="/products">Shop all</a>
       </div>
-      <p class="home-note">Free items added automatically at checkout</p>
     </div>
     <div class="home-hero-stage">
       <div class="hero-floor" aria-hidden="true"></div>
@@ -116,6 +115,7 @@ function home() {
     </div>
     </div>
   </section>
+  <p class="home-note">Free items added automatically at checkout</p>
   <div class="home-trust-wrap"><div class="home-trust">
     <article><span class="home-trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 3h6l1 4H8z"/><path d="M8 7h8v10a4 4 0 01-8 0V7z"/></svg></span><div><h3>99%+ Purity</h3><p>HPLC verified</p></div></article>
     <article><span class="home-trust-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9.5C7.5 20.5 4 17 4 12V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg></span><div><h3>U.S. Lab Tested</h3><p>Third-party COA</p></div></article>

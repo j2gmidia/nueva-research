@@ -877,11 +877,15 @@ html, body { overflow-x: hidden; }
   border-radius: 0.65rem;
 }
 .home-note {
-  display: inline-flex;
+  display: flex;
+  width: max-content;
+  max-width: calc(100% - 2rem);
   align-items: center;
   gap: 0.45rem;
-  margin: 1.45rem 0 0;
-  padding: 0.55rem 0.85rem;
+  margin: -0.9rem auto 0.15rem;
+  position: relative;
+  z-index: 6;
+  padding: 0.55rem 0.95rem;
   font-size: 0.78rem !important;
   font-weight: 700;
   letter-spacing: 0.04em !important;
@@ -889,7 +893,8 @@ html, body { overflow-x: hidden; }
   color: #166534 !important;
   background: #ecfdf5;
   border: 1px solid #bbf7d0;
-  border-radius: 0.55rem;
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(28, 25, 21, 0.08);
 }
 .home-note::before {
   content: "✓";
