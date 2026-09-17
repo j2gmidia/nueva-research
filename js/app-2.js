@@ -85,8 +85,8 @@ function checkoutPage() {
       <h3>Shipping method</h3>
       <div class="ship">Standard · 2–5 business days <span class="muted">Calculated next</span></div>
       <h3>Payment</h3>
+      ${url ? payWallets(url) : `<p class="muted">Shopify variants are not linked.</p>`}
       ${payMarks()}
-      ${url ? `<a class="btn" id="pay-now" href="${url}" style="width:100%;margin-top:20px">Pay now</a>` : `<p class="muted">Shopify variants are not linked.</p>`}
       <p class="muted" style="text-align:center;font-size:12px;margin-top:12px">Secure checkout on Shopify. Research use only.</p>
     </div>
     <aside class="summary">
@@ -160,6 +160,14 @@ function icoBolt() {
 function icoTag() {
   return `<svg class="cart-ico-line" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="#9ca3af" stroke-width="1.8" stroke-linejoin="round" d="M20 13.4 12.4 21a2 2 0 0 1-2.8 0L3 14.4V4h10.4l6.6 6.6a2 2 0 0 1 0 2.8Z"/><circle cx="8.2" cy="8.2" r="1.3" fill="#9ca3af"/></svg>`;
 }
+function payWallets(url) {
+  return `<div class="pay-wallets">
+    <a class="pay-apple" href="${url}">${payApple()}Pay</a>
+    <a class="pay-google" href="${url}">${payGoogle()}Pay</a>
+    <a class="pay-paypal" href="${url}">Pay<span>Pal</span></a>
+    <a class="pay-checkout" id="pay-now" href="${url}">Checkout</a>
+  </div>`;
+}
 function payApple() {
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.6.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-3.9 2.5-1.7 2.9-.4 7.3 1.2 9.7.8 1.2 1.7 2.5 3 2.4 1.2 0 1.6-.8 3.1-.8s1.8.8 3.2.7c1.3 0 2.1-1.2 2.9-2.4.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.6-3.9Zm-2.4-7c.7-.8 1.1-2 1-3.1-1 .1-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.5 2.9-1.4Z"/></svg>`;
 }
@@ -178,7 +186,7 @@ function openCart() {
       const hit = findVariant(l.id); if (!hit) return n;
       return n + compareAt(hit.variant.price) * shipQty(l.qty) - hit.variant.price * l.qty;
     }, 0);
-    const upsells = cartUpsells(lines.map((l) => l.id), 2);
+    const upsells = cartUpsells(lines.map((l) => l.id), 1);
     body = lines.map((l) => {
       const hit = findVariant(l.id); if (!hit) return "";
       const strike = compareAt(hit.variant.price) * shipQty(l.qty);
@@ -194,7 +202,7 @@ function openCart() {
     body += `<label class="cart-addon ${cartSkip ? "on" : ""}"><input type="checkbox" id="cart-skip" ${cartSkip ? "checked" : ""}>${icoBolt()}<span><b>Skip the line</b><small>Your order is packed first</small></span><em>+${money(SKIP)}</em></label>`;
     if (upsells.length) {
       body += `<div class="cart-upsell-list"><p class="cart-upsell-label">You may also like</p>` +
-        upsells.map((item) => `<article class="cart-upsell"><img src="${item.variant.photo}" alt=""><div><p>${item.product.name}</p><small>${item.variant.strength}</small></div><div class="cart-upsell-price"><s>${money(compareAt(item.variant.price))}</s><strong>${money(item.variant.price)}</strong></div><button data-add="${item.variant.id}">Add</button></article>`).join("") +
+        upsells.map((item) => `<article class="cart-upsell"><img src="${item.variant.photo}" alt=""><div><p>${item.product.name}</p><small>${item.variant.strength}</small><div class="cart-upsell-price"><s>${money(compareAt(item.variant.price))}</s><strong>${money(item.variant.price)}</strong></div></div><button data-add="${item.variant.id}">Add</button></article>`).join("") +
         `</div>`;
     }
     const total = paid + (cartProtect ? PROTECT : 0) + (cartSkip ? SKIP : 0);
@@ -202,19 +210,12 @@ function openCart() {
     const bacLeft = Math.max(0, FREE_BAC - paid);
     const shipLeft = Math.max(0, FREE_SHIP - paid);
     foot = `<footer class="cart-foot">
-      <label class="cart-promo">${icoTag()}<input placeholder="Add promo code"></label>
+      <details class="cart-promo"><summary>${icoTag()} Add promo code</summary><input placeholder="Enter promo code"></details>
       <div class="cart-bar"><p><span class="cart-gift">🎁</span> Free BAC Water <span>${bacLeft ? money(bacLeft) + " away" : "Unlocked"}</span></p><i><b style="width:${Math.min(100, paid / FREE_BAC * 100)}%"></b></i></div>
       <div class="cart-bar ship"><p>Free shipping <span>${shipLeft ? money(shipLeft) + " away" : "Unlocked"}</span></p><i><b style="width:${Math.min(100, paid / FREE_SHIP * 100)}%"></b></i></div>
       <div class="cart-sub"><span>Subtotal</span><strong>${money(total)}</strong></div>
-      <p class="cart-tax">Shipping & taxes calculated at checkout</p>
-      <p class="cart-saved">You saved ${money(saved)} · Earn ${Math.round(total * 10)} points</p>
-      <div class="cart-pays">
-        ${url ? `<a class="pay-apple" href="${url}">${payApple()}Pay</a>
-        <a class="pay-google" href="${url}">${payGoogle()}Pay</a>
-        <a class="pay-paypal" href="${url}">Pay<span>Pal</span></a>
-        <a class="pay-checkout" href="${url}">Checkout</a>` : `<a class="pay-checkout" href="/checkout">Checkout</a>`}
-      </div>
-      <a class="cart-full" href="/checkout" data-close>View full cart →</a>
+      ${saved > 0 ? `<p class="cart-saved">You saved ${money(saved)} with BOGO</p>` : ""}
+      <a class="pay-checkout cart-checkout-btn" href="${url || "/checkout"}">Checkout</a>
     </footer>`;
   }
   $("#drawers").innerHTML = `<div class="drawer-bg" data-close></div><aside class="cart-drawer">
